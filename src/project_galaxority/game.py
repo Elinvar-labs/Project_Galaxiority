@@ -1,10 +1,10 @@
 from raylibpy import *
 from settings import *
 
-from src.project_galaxy.skybox import create_skybox
-from src.project_galaxy.stars import *
-from src.project_galaxy.camera import ChaseCamera
-from src.project_galaxy.input import Input
+from src.project_galaxority.skybox import create_skybox
+from src.project_galaxority.stars import *
+from src.project_galaxority.camera import ChaseCamera
+from src.project_galaxority.input import Input
 
 
 
