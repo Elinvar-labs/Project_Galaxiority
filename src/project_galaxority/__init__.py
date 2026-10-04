@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from project-galaxy!")
+from project_galaxority.game import *

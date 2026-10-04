@@ -1,0 +1,1 @@
+ uv run .\fix_models.py .\asteroid_1.glb fixed

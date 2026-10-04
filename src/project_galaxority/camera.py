@@ -1,8 +1,34 @@
 import math
 from raylibpy import *
 
-from settings import CAM_HEIGHT, CAM_DISTANCE, CAM_LOOK_AHEAD
+import math
 
+from .settings import CAM_DISTANCE, CAM_HEIGHT, CAM_LOOK_AHEAD
+
+
+def follow_ship(camera, ship, dt: float) -> None:
+    """Плавно тянет камеру за кораблём (без аллокаций)."""
+    fx, fy, fz = ship.fx, ship.fy, ship.fz
+    ux, uy, uz = ship.ux, ship.uy, ship.uz
+    p = ship.position
+
+    desired_x = p.x - fx * CAM_DISTANCE + ux * CAM_HEIGHT
+    desired_y = p.y - fy * CAM_DISTANCE + uy * CAM_HEIGHT
+    desired_z = p.z - fz * CAM_DISTANCE + uz * CAM_HEIGHT
+
+    k = 1.0 - math.exp(-14.0 * dt)
+    cam = camera.position
+    cam.x += (desired_x - cam.x) * k
+    cam.y += (desired_y - cam.y) * k
+    cam.z += (desired_z - cam.z) * k
+
+    tgt = camera.target
+    tgt.x = p.x + fx * CAM_LOOK_AHEAD
+    tgt.y = p.y + fy * CAM_LOOK_AHEAD
+    tgt.z = p.z + fz * CAM_LOOK_AHEAD
+
+    up = camera.up
+    up.x, up.y, up.z = ux, uy, uz
 
 class ChaseCamera:
     """A camera that follows the ship and rolls with it.

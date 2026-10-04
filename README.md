@@ -64,7 +64,7 @@ cd galaxority
 uv sync
 
 # Запустить игру
-uv run game.py
+uv run project-galaxority
 ```
 
 ---

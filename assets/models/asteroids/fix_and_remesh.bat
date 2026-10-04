@@ -1,0 +1,1 @@
+ uv run .\fix_and_remesh.py --remesh isotropic --target-faces 5000 .\asteroid_1.glb remeshed

@@ -9,6 +9,8 @@ BOOST_MULT = 2.2  # boost multiplier (Shift)
 THROTTLE_SPEED = 0.8  # throttle speed (W/S)
 FIELD_RADIUS = 350.0  # radius of the star field around the ship
 STAR_COUNT = 700
+ASTEROID_COUNT = 250
+
 
 CAM_DISTANCE = 10.0  # how far the camera is behind the ship
 CAM_HEIGHT = 4.0  # how much higher the camera is than the ship

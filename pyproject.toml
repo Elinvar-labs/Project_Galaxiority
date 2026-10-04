@@ -7,7 +7,7 @@ authors = [
     { name = "Elinvar-labs", email = "shamin.pavel32@yandex.ru" }
 ]
 requires-python = ">=3.11"
-dependencies = ["raylib-py", "pylint", "numpy", "pillow"]
+dependencies = ["raylib-py", "pylint", "numpy", "scipy","pillow", "pytest", "trimesh", "fast-simplification", "pymeshlab"]
 
 [project.scripts]
 project-galaxority = "project_galaxority:main"
