@@ -1,1 +1,0 @@
-from project_galaxority.game import *

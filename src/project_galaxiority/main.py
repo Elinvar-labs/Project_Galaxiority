@@ -1,4 +1,4 @@
-from project_galaxority.game import Game
+from project_galaxiority.game import Game
 
 
 def main() -> None:

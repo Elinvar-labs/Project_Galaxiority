@@ -1,9 +1,9 @@
 import pytest
 from raylibpy import Vector3
 
-from project_galaxority.camera import ChaseCamera
-from project_galaxority.input import Input
-from project_galaxority.utils import clamp
+from project_galaxiority.camera import ChaseCamera
+from project_galaxiority.input import Input
+from project_galaxiority.utils import clamp
 
 @pytest.mark.parametrize("value, expected", [
     (0, 0),
@@ -65,7 +65,7 @@ def center():
 
 
 def test_make_star(center):
-    from project_galaxority.stars import make_star
+    from project_galaxiority.stars import make_star
     star = make_star(center)
     assert isinstance(star, dict)
     assert star["pos"] is not None
@@ -75,7 +75,7 @@ def test_make_star(center):
     assert star["color"].b >= 150 and star["color"].b <= 255
 
 def test_make_asteroid(center):
-    from project_galaxority import make_asteroid
+    from project_galaxiority import make_asteroid
     star = make_asteroid(center)
     assert isinstance(star, dict)
     assert star["pos"] is not None

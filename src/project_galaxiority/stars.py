@@ -1,7 +1,7 @@
 import math
 import random
 
-from project_galaxority.settings import *
+from project_galaxiority.settings import *
 from raylibpy import *
 
 

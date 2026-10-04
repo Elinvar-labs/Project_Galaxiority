@@ -5,7 +5,7 @@
 **Космическая 3D-игра об исследовании бескрайних галактик**
 
 [![Статус](https://img.shields.io/badge/статус-в%20разработке-yellow?style=for-the-badge)](.)
-[![Версия](https://img.shields.io/badge/версия-0.1.0-blue?style=for-the-badge)](.)
+[![Версия](https://img.shields.io/badge/версия-0.1.1-blue?style=for-the-badge)](.)
 [![Лицензия](https://img.shields.io/badge/лицензия-MIT-green?style=for-the-badge)](LICENSE)
 [![Платформа](https://img.shields.io/badge/платформа-PC-9cf?style=for-the-badge)](.)
 
@@ -55,16 +55,16 @@
 
 ```bash
 # Клонировать репозиторий
-git clone https://github.com/username/galaxority.git
+git clone https://github.com/Elinvar-labs/Project_Galaxiority
 
 # Перейти в директорию
-cd galaxority
+cd galaxiority
 
 # Установить зависимости
 uv sync
 
 # Запустить игру
-uv run project-galaxority
+uv run project-galaxiority
 ```
 
 ---
@@ -80,6 +80,8 @@ uv run project-galaxority
 | Огонь                | `ЛКМ`      |
 | Карта                | `M`        |
 
+#### Также поддерживаются игровые геймпады!
+
 ---
 
 ## 📂 Структура проекта
@@ -87,7 +89,7 @@ uv run project-galaxority
 ```
 galaxority/
 ├── assets/                     # Ресурсы (модели, текстуры, звуки)
-├── src/project_galaxority/         # Игровая логика
+├── src/project_galaxiority/         # Игровая логика
 ├── scenes/                     # Игровые сцены
 └── README.md
 ```

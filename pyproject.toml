@@ -1,5 +1,5 @@
 [project]
-name = "project-galaxority"
+name = "project-galaxiority"
 version = "0.1.0"
 description = "Space Game Project"
 readme = "README.md"
@@ -7,10 +7,13 @@ authors = [
     { name = "Elinvar-labs", email = "shamin.pavel32@yandex.ru" }
 ]
 requires-python = ">=3.11"
-dependencies = ["raylib-py", "pylint", "numpy", "scipy","pillow", "pytest", "trimesh", "fast-simplification", "pymeshlab"]
+dependencies = [
+    "raylib-py", "pylint", "numpy", "scipy", "pillow",
+    "pytest", "trimesh", "fast-simplification", "pymeshlab",
+]
 
 [project.scripts]
-project-galaxority = "project_galaxority:main"
+project-galaxiority = "project_galaxiority.main:main"
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13.0"]
