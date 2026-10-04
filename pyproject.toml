@@ -8,9 +8,16 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "raylib-py", "pylint", "numpy", "scipy", "pillow",
-    "pytest", "trimesh", "fast-simplification", "pymeshlab",
-    "requests>=2.31"
+    "raylib-py",
+    "pylint",
+    "numpy",
+    "scipy",
+    "pillow",
+    "pytest",
+    "trimesh",
+    "fast-simplification",
+    "pymeshlab",
+    "requests>=2.31",
 ]
 
 [project.scripts]
