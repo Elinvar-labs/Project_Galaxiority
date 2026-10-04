@@ -15,10 +15,93 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
 
+    env:
+      # Префикс установки raylib. Используется при сборке, установке
+      # и при формировании RAYLIB_LIB_PATH.
+      RAYLIB_PREFIX: /usr/local
+      # raylib-py читает эту переменную перед импортом и ищет
+      # libraylib.so именно в указанной директории.
+      # Значение задаётся на уровне job, чтобы оно было доступно
+      # на всех шагах, включая запуск pytest.
+      RAYLIB_LIB_PATH: /usr/local/lib
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # --- 1. Системные зависимости для сборки raylib ---------------------
+      # Без этих dev-пакетов `make` для raylib упадёт на этапе
+      # компиляции платформенного слоя (X11, Wayland, OpenGL, ALSA).
+      - name: Install raylib build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake git \
+            libasound2-dev libx11-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev \
+            libxinerama-dev libxfixes-dev libwayland-dev \
+            libxkbcommon-dev
+
+      # --- 2. Кэш собранной raylib ---------------------------------------
+      # Сборка занимает ~1–2 минуты на каждый job. Кэшируем по версии
+      # raylib и по хэшу uv.lock, чтобы не пересобирать без нужды.
+      - name: Cache raylib build
+        id: cache-raylib
+        uses: actions/cache@v4
+        with:
+          path: /tmp/raylib-install
+          key: raylib-5.5-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+
+      # --- 3. Сборка raylib 5.5 (shared) ----------------------------------
+      # ВАЖНО: версия 5.5 должна совпадать с той, которую ожидает
+      # raylib-py — в трейсбеке фигурирует libraylib.so.5.5.0.
+      - name: Build raylib 5.5
+        if: steps.cache-raylib.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch 5.5 \
+            https://github.com/raysan5/raylib.git /tmp/raylib-src
+          cd /tmp/raylib-src/src
+          make PLATFORM=PLATFORM_DESKTOP \
+               RAYLIB_LIBTYPE=SHARED \
+               BUILD_MODE=RELEASE
+          make install \
+               RAYLIB_LIBTYPE=SHARED \
+               DESTDIR=/tmp/raylib-install \
+               PREFIX=${RAYLIB_PREFIX}
+          ls -l /tmp/raylib-install${RAYLIB_PREFIX}/lib/
+
+      - name: Install raylib into system prefix
+        run: |
+          sudo cp -a /tmp/raylib-install/. /
+          sudo ldconfig
+          ls -l ${RAYLIB_PREFIX}/lib/libraylib*
+
+      # --- 4. Проверка имени библиотеки и создание симлинка --------------
+      # raylib-py может ожидать конкретное имя файла (например,
+      # libraylib.so.5.5.0). После сборки имя может отличаться,
+      # поэтому создаём симлинк libraylib.so на фактический файл.
+      - name: Ensure libraylib.so symlink exists
+        run: |
+          cd ${RAYLIB_PREFIX}/lib
+          # Находим реальный файл libraylib.so.*.*.*
+          REAL_SO=$(ls libraylib.so.*.*.* 2>/dev/null | head -n1 || true)
+          if [ -z "$REAL_SO" ]; then
+            echo "No versioned libraylib.so found, trying libraylib.so"
+            REAL_SO=$(ls libraylib.so 2>/dev/null | head -n1 || true)
+          fi
+          if [ -z "$REAL_SO" ]; then
+            echo "ERROR: libraylib.so not found in ${RAYLIB_PREFIX}/lib"
+            ls -la
+            exit 1
+          fi
+          echo "Found: $REAL_SO"
+          # Если libraylib.so отсутствует — создаём симлинк
+          if [ ! -e libraylib.so ]; then
+            sudo ln -s "$REAL_SO" libraylib.so
+          fi
+          ls -l libraylib.so*
+
+      # --- 5. Python / uv ------------------------------------------------
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -31,11 +114,28 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Run tests
-        run: uv run pytest
+      # --- 6. Санити-чек: убеждаемся, что raylib реально грузится --------
+      # Если этот шаг упадёт — дальше идти нет смысла, и ошибка будет
+      # гораздо понятнее, чем из ctypes внутри raylib-py.
+      - name: Sanity check raylib loading
+        run: |
+          uv run python - <<'PY'
+          import os, ctypes
+          from raylibpy import Vector3   # noqa: F401
+          print("RAYLIB_LIB_PATH:", os.environ.get("RAYLIB_LIB_PATH"))
+          # Проверяем, что библиотека действительно загрузилась
+          print("Vector3:", Vector3)
+          print("raylib loaded OK")
+          PY
 
+      # --- 7. Тесты с покрытием ------------------------------------------
+      # Объединил два запуска pytest в один — иначе тесты идут дважды.
       - name: Run tests with coverage
-        run: uv run pytest --cov=src --cov-report=xml --cov-report=term-missing
+        run: |
+          uv run pytest \
+            --cov=src \
+            --cov-report=xml \
+            --cov-report=term-missing
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
