@@ -16,6 +16,8 @@ from raylibpy import (
     unload_music_stream,
     unload_sound,
     update_music_stream,
+    stop_music_stream,
+    unload_sound_alias,
 )
 
 
@@ -103,13 +105,38 @@ class AudioManager:
         set_music_pitch(self.boost_music, 0.75 + 0.25 * self._boost_vol)
 
     # ------------------------------------------------------------------
+
+
+
     def close(self) -> None:
+        # 1) Останавливаем музыку (иначе поток может продолжать писать в буфер)
+        for m in (self.bg_music, self.engine_music, self.boost_music):
+            try:
+                stop_music_stream(m)
+            except Exception:
+                pass
+
+        # 2) Алиасы — ИХ собственным методом.
         for s in self._explosion_pool:
-            unload_sound(s)
-        unload_sound(self.explosion_sound)
+            try:
+                unload_sound_alias(s)
+            except Exception:
+                pass
+        self._explosion_pool.clear()
 
-        unload_music_stream(self.bg_music)
-        unload_music_stream(self.engine_music)
-        unload_music_stream(self.boost_music)
+        # 3) Оригинал — обычным unload_sound (и только теперь,
+        #    после того как освободили все алиасы).
+        try:
+            unload_sound(self.explosion_sound)
+        except Exception:
+            pass
 
+        # 4) Музыку выгружаем
+        for m in (self.bg_music, self.engine_music, self.boost_music):
+            try:
+                unload_music_stream(m)
+            except Exception:
+                pass
+
+        # 5) И только в самом конце закрываем устройство
         close_audio_device()
