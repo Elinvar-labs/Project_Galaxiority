@@ -1,7 +1,10 @@
-import raylib as rl
+import raylibpy as rl
 import math
 from dataclasses import dataclass
 from typing import List
+
+from project_galaxiority.bullet import Bullet
+
 
 class Weapon:
     def __init__(self, fire_rate: float, bullet_speed: float, bullet_color: rl.Color):
