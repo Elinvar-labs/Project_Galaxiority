@@ -33,10 +33,9 @@ class StarField:
                 py[i] = p.y
                 pz[i] = p.z
 
-
 class AsteroidField:
     __slots__ = ("pos_x", "pos_y", "pos_z", "radius", "color",
-                 "count", "_random_pos")
+                 "hp", "count", "_random_pos")
 
     def __init__(self, make_asteroid, random_pos, count: int, ship_position):
         asteroids = [make_asteroid(ship_position) for _ in range(count)]
@@ -45,18 +44,24 @@ class AsteroidField:
         self.pos_z = [a["pos"].z for a in asteroids]
         self.radius = [a["radius"] for a in asteroids]
         self.color = [a["color"] for a in asteroids]
+        # HP пропорционален радиусу: большие астероиды нужно бить дольше
+        self.hp = [max(1, int(a["radius"] * 1.5)) for a in asteroids]
         self.count = len(asteroids)
         self._random_pos = random_pos
 
-    def update(self, sx: float, sy: float, sz: float,
-               field_sq: float, ship_position,
-               ship_radius: float, collision_scale: float,
-               on_collision) -> None:
-        """Рециркуляция + проверка столкновений.
+    # ------------------------------------------------------------------ #
+    def respawn(self, i: int, ship_position) -> None:
+        """Переставить слот i в новую точку и восстановить HP."""
+        p = self._random_pos(ship_position)
+        self.pos_x[i] = p.x
+        self.pos_y[i] = p.y
+        self.pos_z[i] = p.z
+        self.hp[i] = max(1, int(self.radius[i] * 1.5))
 
-        on_collision(x, y, z, radius) вызывается при попадании;
-        астероид тут же респавнится вдали.
-        """
+    # ------------------------------------------------------------------ #
+    def update(self, sx, sy, sz, field_sq, ship_position,
+               ship_radius, collision_scale, on_collision) -> None:
+        """Рециркуляция + столкновения с КОРАБЛЁМ (без изменений)."""
         px, py, pz = self.pos_x, self.pos_y, self.pos_z
         radius = self.radius
         random_pos = self._random_pos
@@ -68,16 +73,10 @@ class AsteroidField:
             dist_sq = dx * dx + dy * dy + dz * dz
 
             if dist_sq > field_sq:
-                p = random_pos(ship_position)
-                px[i] = p.x
-                py[i] = p.y
-                pz[i] = p.z
+                self.respawn(i, ship_position)
                 continue
 
             hit_r = radius[i] * collision_scale + ship_radius
             if dist_sq < hit_r * hit_r:
                 on_collision(px[i], py[i], pz[i], radius[i])
-                p = random_pos(ship_position)
-                px[i] = p.x
-                py[i] = p.y
-                pz[i] = p.z
+                self.respawn(i, ship_position)

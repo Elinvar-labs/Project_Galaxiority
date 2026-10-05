@@ -14,7 +14,7 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <option name="RUN_TOOL" value="" />
-    <option name="SCRIPT_NAME" value="D:\BEST_PYTHON_PROJECTS\ADVANCED_PROJECTS\GALAXY_ON_FIRE_2_PYTHON_PROJECT\Project_Galaxiority\src\project_galaxiority\main.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/project_galaxiority/main.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />

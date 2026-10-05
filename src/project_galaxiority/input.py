@@ -6,12 +6,10 @@ class Input:
 
     def __init__(self, screen_width: int, screen_height: int,
                  dead_zone: float = 0.07,
-                 gamepad: int = 0):  # 0 = первый геймпад
+                 gamepad: int = 0):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.dead_zone = dead_zone
-
-        # Номер геймпада — просто целое число (0, 1, 2, 3)
         self.gamepad = gamepad
         self.gamepad_active = False
 
@@ -25,64 +23,27 @@ class Input:
         self.boost = False
         self.wants_quit = False
 
+        # --- НОВОЕ: каналы стрельбы (непрерывные, читаются как "зажато") ---
+        self.fire_primary = False     # лёгкие лазеры
+        self.fire_secondary = False   # ракеты / тяжёлое оружие
+        # Разовые события — удобно для запуска ракет "по нажатию", а не зажатию
+        self.fire_primary_pressed = False
+        self.fire_secondary_pressed = False
+
     # ------------------------------------------------------------------ #
     def update(self) -> None:
         """Count all input as current frame. Call once per frame."""
-        # Проверка доступности геймпада по его номеру
         self.gamepad_active = is_gamepad_available(self.gamepad)
 
         self._read_stick()
         self._read_roll()
         self._read_throttle()
         self._read_modifiers()
+        self._read_weapons()          # <-- НОВОЕ
 
     # ------------------------------------------------------------------ #
-    # def _read_stick(self) -> None:
-    #     """Mouse as a virtual stick + arrows + gamepad left stick."""
-    #     self.mouse = get_mouse_position()
-    #
-    #     sx = clamp((self.mouse.x - self.screen_width * 0.5)
-    #                / (self.screen_width * 0.5), -1.0, 1.0)
-    #     sy = clamp((self.mouse.y - self.screen_height * 0.5)
-    #                / (self.screen_height * 0.5), -1.0, 1.0)
-    #
-    #     if abs(sx) < self.dead_zone:
-    #         sx = 0.0
-    #     if abs(sy) < self.dead_zone:
-    #         sy = 0.0
-    #
-    #     if is_key_down(KeyboardKey.KEY_LEFT):
-    #         sx = -1.0
-    #     if is_key_down(KeyboardKey.KEY_RIGHT):
-    #         sx = 1.0
-    #     if is_key_down(KeyboardKey.KEY_UP):
-    #         sy = -1.0
-    #     if is_key_down(KeyboardKey.KEY_DOWN):
-    #         sy = 1.0
-    #
-    #     # Gamepad left stick overrides keyboard/mouse when actually moved.
-    #     if self.gamepad_active:
-    #         # Передаём self.gamepad (целое число) вместо GamepadNumber
-    #         gx = get_gamepad_axis_movement(
-    #             self.gamepad, GamepadAxis.GAMEPAD_AXIS_LEFT_X)
-    #         gy = get_gamepad_axis_movement(
-    #             self.gamepad, GamepadAxis.GAMEPAD_AXIS_LEFT_Y)
-    #
-    #         if abs(gx) < self.dead_zone:
-    #             gx = 0.0
-    #         if abs(gy) < self.dead_zone:
-    #             gy = 0.0
-    #
-    #         if gx != 0.0:
-    #             sx = gx
-    #         if gy != 0.0:
-    #             sy = gy
-    #
-    #     self.stick_x = sx
-    #     self.stick_y = sy
     def _read_stick(self) -> None:
         """Mouse as a virtual stick + arrows + gamepad left stick."""
-        # позицию мыши всё равно обновляем — её могут читать другие системы
         self.mouse = get_mouse_position()
 
         if self.gamepad_active:
@@ -183,3 +144,43 @@ class Input:
             if is_gamepad_button_pressed(
                     self.gamepad, GamepadButton.GAMEPAD_BUTTON_MIDDLE_RIGHT):
                 self.wants_quit = True
+
+    # ------------------------------------------------------------------ #
+    #  НОВОЕ: оружие
+    # ------------------------------------------------------------------ #
+    def _read_weapons(self) -> None:
+        """
+        Основное оружие:
+          - ЛКМ
+          - Ctrl (левый или правый)
+          - RB на геймпаде
+        Вторичное оружие:
+          - ПКМ
+          - Alt (левый или правый)
+          - LB на геймпаде
+        """
+        primary = is_mouse_button_down(MouseButton.MOUSE_BUTTON_LEFT)
+        if (is_key_down(KeyboardKey.KEY_LEFT_CONTROL)
+                or is_key_down(KeyboardKey.KEY_RIGHT_CONTROL)):
+            primary = True
+
+        secondary = is_mouse_button_down(MouseButton.MOUSE_BUTTON_RIGHT)
+        if (is_key_down(KeyboardKey.KEY_LEFT_ALT)
+                or is_key_down(KeyboardKey.KEY_RIGHT_ALT)):
+            secondary = True
+
+        if self.gamepad_active:
+            # TRIGGER_1 = бампер (LB/RB), TRIGGER_2 = аналоговый триггер
+            if is_gamepad_button_down(
+                    self.gamepad, GamepadButton.GAMEPAD_BUTTON_RIGHT_TRIGGER_1):
+                primary = True
+            if is_gamepad_button_down(
+                    self.gamepad, GamepadButton.GAMEPAD_BUTTON_LEFT_TRIGGER_1):
+                secondary = True
+
+        # Разовые события для оружия с "по нажатию" (например, запуск ракеты)
+        self.fire_primary_pressed   = primary   and not self.fire_primary
+        self.fire_secondary_pressed = secondary and not self.fire_secondary
+
+        self.fire_primary   = primary
+        self.fire_secondary = secondary
