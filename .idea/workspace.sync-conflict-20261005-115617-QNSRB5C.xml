@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d0503e0c-82d1-4a6c-94fd-86b4b59946b2" name="Changes" comment="Fix tests" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view />
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Elinvar-labs&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Elinvar-labs/Project_Galaxiority.git&quot;,
+    &quot;accountId&quot;: &quot;374114ed-0536-4134-9c81-44d9844a1e96&quot;
+  }
+}</component>
+  <component name="GradleModuleStateConfig" initialized="true" />
+  <component name="OpenIdeProjectLocalState">
+    <option name="firstOpen" value="false" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="3K8esWtLjRCJgxlNpSFWsBqixkl" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Gradle.D:/BEST_PYTHON_PROJECTS/ADVANCED_PROJECTS/GALAXY_ON_FIRE_2_PYTHON_PROJECT/Project_Galaxiority [build].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.pytest in core.py.executor": "Run",
+    "Python tests.pytest in test_core.py.executor": "Run",
+    "Python tests.pytest in tests.py.executor": "Run",
+    "Python.camera.executor": "Run",
+    "Python.fix_models.executor": "Run",
+    "Python.game.executor": "Run",
+    "Python.game_main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/BEST_PYTHON_PROJECTS/ADVANCED_PROJECTS/GALAXY_ON_FIRE_2_PYTHON_PROJECT/project_galaxy",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "com.devoxx.genie.llmfeatures"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\BEST_PYTHON_PROJECTS\ADVANCED_PROJECTS\GALAXY_ON_FIRE_2_PYTHON_PROJECT\Project_Galaxiority\tests" />
+      <recent name="D:\BEST_PYTHON_PROJECTS\ADVANCED_PROJECTS\GALAXY_ON_FIRE_2_PYTHON_PROJECT\Project_Galaxiority" />
+      <recent name="D:\BEST_PYTHON_PROJECTS\ADVANCED_PROJECTS\GALAXY_ON_FIRE_2_PYTHON_PROJECT\Project_Galaxiority\src\project_galaxiority" />
+      <recent name="D:\BEST_PYTHON_PROJECTS\ADVANCED_PROJECTS\GALAXY_ON_FIRE_2_PYTHON_PROJECT\Project_Galaxiority\src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.game_main">
+    <configuration name="pytest in test_core.py" type="tests" factoryName="py.test" nameIsGenerated="true">
+      <module name="project_galaxy" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.11 (Project_Galaxiority)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="RUN_TOOL" value="" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_parameters" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_core.py&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.game_main" />
+      <item itemvalue="Python tests.pytest in test_core.py" />
+    </list>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d0503e0c-82d1-4a6c-94fd-86b4b59946b2" name="Changes" comment="" />
+      <created>1790943829909</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1790943829909</updated>
+    </task>
+    <task id="LOCAL-00001" summary="Spaceship Basic Engine with raylib: keyboard and mouse controls, skybox, spaceship, music.">
+      <option name="closed" value="true" />
+      <created>1790963456210</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1790963456211</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Update README.md">
+      <option name="closed" value="true" />
+      <created>1790972598019</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1790972598019</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add LICENSE">
+      <option name="closed" value="true" />
+      <created>1790972949432</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790972949432</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Big code refactoring, sounds and music, explosions, asteroids, gamepad support">
+      <option name="closed" value="true" />
+      <created>1791135405209</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1791135405209</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fix audio.py sound unloading">
+      <option name="closed" value="true" />
+      <created>1791139532578</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1791139532578</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Project renaming, update README.md">
+      <option name="closed" value="true" />
+      <created>1791140452226</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1791140452226</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Add tests.yml">
+      <option name="closed" value="true" />
+      <created>1791143982544</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1791143982544</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Fix tests">
+      <option name="closed" value="true" />
+      <created>1791144150480</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1791144150480</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Fix tests">
+      <option name="closed" value="true" />
+      <created>1791144441129</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1791144441129</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Fix tests">
+      <option name="closed" value="true" />
+      <created>1791144847358</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1791144847358</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Fix tests">
+      <option name="closed" value="true" />
+      <created>1791145369409</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1791145369409</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Fix tests">
+      <option name="closed" value="true" />
+      <created>1791145541828</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1791145541828</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Spaceship Basic Engine with raylib: keyboard and mouse controls, skybox, spaceship, music." />
+    <MESSAGE value="Update README.md" />
+    <MESSAGE value="Add LICENSE" />
+    <MESSAGE value="Big code refactoring, sounds and music, explosions, asteroids, gamepad support" />
+    <MESSAGE value="Fix audio.py sound unloading" />
+    <MESSAGE value="Project renaming, update README.md" />
+    <MESSAGE value="Add tests.yml" />
+    <MESSAGE value="Fix tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix tests" />
+  </component>
+</project>

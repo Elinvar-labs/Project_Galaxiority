@@ -23,10 +23,14 @@ SECONDARY_BULLET_SPEED = 60.0
 SECONDARY_BULLET_LIFE  = 6.0
 SECONDARY_DAMAGE       = 40
 
-# --- Параметры живучести ---                                     # <-- НОВОЕ
+# --- Параметры живучести ---
 PLAYER_MAX_HP          = 100
 PLAYER_HIT_FLASH_TIME  = 0.18
 PLAYER_RESPAWN_INVULN  = 1.2
+
+# --- Самонаведение ракеты ---
+SECONDARY_HOMING       = True
+SECONDARY_TURN_RATE    = 3.5      # рад/с (~200°/с) — комфортный радиус разворота
 
 _MUZZLE_LEFT   = Vector3(-0.6,  0.0,  1.8)
 _MUZZLE_RIGHT  = Vector3( 0.6,  0.0,  1.8)
@@ -38,6 +42,16 @@ _ONE    = Vector3(1.0, 1.0, 1.0)
 _FLAME_L = Vector3(-0.35, 0.0, 2.5)
 _FLAME_R = Vector3( 0.35, 0.0, 2.5)
 
+def _draw_puff(model, pos: Vector3, ux: float, uy: float, uz: float,
+               dist: float, scale: float, color) -> None:
+    """Рисует шарик дыма на расстоянии dist ПОЗАДИ точки pos вдоль -u."""
+    draw_model(
+        model,
+        Vector3(pos.x - ux * dist,
+                pos.y - uy * dist,
+                pos.z - uz * dist),
+        scale, color,
+    )
 
 class Ship:
     __slots__ = ("position", "yaw", "pitch", "roll",
@@ -93,7 +107,7 @@ class Ship:
         self.bullets.clear()
 
     # ------------------------------------------------------------------
-    def update(self, inp, dt: float) -> None:
+    def update(self, inp, dt: float, enemies=None) -> None:
         if self.hit_flash > 0.0:
             self.hit_flash -= dt
         if self.invuln > 0.0:
@@ -140,7 +154,7 @@ class Ship:
 
         # --- Стрельба и снаряды ---
         self._update_weapons(inp, dt)
-        self._update_bullets(dt)
+        self._update_bullets(dt, enemies)
 
     # ------------------------------------------------------------------
     def _update_weapons(self, inp, dt: float) -> None:
@@ -155,10 +169,10 @@ class Ship:
             self.fire_secondary()
             self.secondary_cd = 1.0 / SECONDARY_FIRE_RATE
 
-    def _update_bullets(self, dt: float) -> None:
+    def _update_bullets(self, dt: float, enemies=None) -> None:
         alive: list[Bullet] = []
         for b in self.bullets:
-            if b.update(dt):
+            if b.update(dt, enemies):
                 alive.append(b)
         self.bullets = alive
 
@@ -171,26 +185,31 @@ class Ship:
             )
 
     def _spawn(self, local_offset: Vector3, speed: float, lifetime: float,
-               damage: int, is_missile: bool, radius: float) -> None:
+               damage: int, is_missile: bool, radius: float,
+               homing: bool = False, turn_rate: float = 0.0) -> None:
         pos = self._muzzle_world(local_offset)
         total = speed + self.speed
         vel = Vector3(self.fx * total, self.fy * total, self.fz * total)
         self.bullets.append(
-            Bullet(pos, vel, lifetime, damage, is_missile, radius)
+            Bullet(pos, vel, lifetime, damage, is_missile, radius,
+                   homing=homing, turn_rate=turn_rate)
         )
-
     def fire_primary(self) -> None:
+        """Парный залп лазеров с крыльев — без самонаведения."""
         self._spawn(_MUZZLE_LEFT,  PRIMARY_BULLET_SPEED, PRIMARY_BULLET_LIFE,
                     PRIMARY_DAMAGE, False, 0.04)
         self._spawn(_MUZZLE_RIGHT, PRIMARY_BULLET_SPEED, PRIMARY_BULLET_LIFE,
                     PRIMARY_DAMAGE, False, 0.04)
 
     def fire_secondary(self) -> None:
+        """Тяжёлая самонаводящаяся ракета из подфюзеляжного узла."""  # <-- ИЗМЕНЕНО
         self._spawn(_MUZZLE_CENTER, SECONDARY_BULLET_SPEED, SECONDARY_BULLET_LIFE,
-                    SECONDARY_DAMAGE, True, 0.08)
-
+                    SECONDARY_DAMAGE, True, 0.08,
+                    homing=SECONDARY_HOMING,
+                    turn_rate=SECONDARY_TURN_RATE)
     # ------------------------------------------------------------------
     def draw(self, ship_model, sphere_model, bullet_model=None) -> None:
+        # --- Сам корабль в локальной системе ---
         p = self.position
         rl_push_matrix()
         rl_translatef(p.x, p.y, p.z)
@@ -198,7 +217,6 @@ class Ship:
         rl_rotatef(self.pitch * RAD2DEG, 1.0, 0.0, 0.0)
         rl_rotatef(self.roll  * RAD2DEG, 0.0, 0.0, 1.0)
 
-        # Мигание при попадании / полупрозрачность при неуязвимости      # <-- НОВОЕ
         if self.hit_flash > 0.0:
             tint = RED
         elif self.invuln > 0.0 and (int(self.invuln * 12) & 1):
@@ -217,7 +235,28 @@ class Ship:
 
         rl_pop_matrix()
 
+        # --- Снаряды в МИРОВЫХ координатах ---
         if bullet_model is not None:
             for b in self.bullets:
-                color = YELLOW if b.is_missile else RED
-                draw_model(bullet_model, b.position, b.radius * 30.0, color)
+                if b.is_missile:
+                    # Ракета — компактнее (было radius * 30)
+                    draw_model(bullet_model, b.position, b.radius * 17.0, YELLOW)
+
+                    # Дымовой след: 5 сфер с затухающим цветом
+                    vx, vy, vz = b.velocity.x, b.velocity.y, b.velocity.z
+                    vlen = math.sqrt(vx * vx + vy * vy + vz * vz) or 1.0
+                    ux, uy, uz = vx / vlen, vy / vlen, vz / vlen
+
+                    _draw_puff(bullet_model, b.position, ux, uy, uz,
+                               1.6, b.radius * 13.0, (255, 220, 90, 255))
+                    _draw_puff(bullet_model, b.position, ux, uy, uz,
+                               3.0, b.radius * 11.0, (255, 150, 50, 255))
+                    _draw_puff(bullet_model, b.position, ux, uy, uz,
+                               4.4, b.radius *  9.0, (200, 100, 40, 255))
+                    _draw_puff(bullet_model, b.position, ux, uy, uz,
+                               5.8, b.radius *  7.0, (140,  80, 55, 255))
+                    _draw_puff(bullet_model, b.position, ux, uy, uz,
+                               7.2, b.radius *  5.0, ( 90,  60, 50, 255))
+                else:
+                    # Лазерный болт — как раньше
+                    draw_model(bullet_model, b.position, b.radius * 30.0, RED)

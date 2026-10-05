@@ -17,7 +17,7 @@ from raylibpy import (BLACK, WHITE, DARKGRAY, RED, ORANGE, GREEN,
                       load_font, get_font_default,
                       is_key_pressed,
                       KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_Y,
-                      get_time)
+                      get_time, draw_circle, draw_circle_lines, Color)
 
 from .camera import ChaseCamera, follow_ship
 from .enemy_field import EnemyField
@@ -206,7 +206,8 @@ class Game:
         ship = self.ship
         self.audio.update(dt, ship)
 
-        ship.update(self.input, dt)
+        # ship.update(self.input, dt)
+        ship.update(self.input, dt, self.enemies.enemies)
 
         p = ship.position
         self.stars.recycle(p.x, p.y, p.z, self._field_sq, p)
@@ -277,7 +278,7 @@ class Game:
         self.hud.draw(ship, self.input, self.explosion_count)
         self._draw_enemy_hp_bars()
         self._draw_player_hp_bar()
-
+        self._draw_enemy_indicators()
         if self.state == STATE_GAME_OVER:
             self._draw_game_over_screen()       # <-- НОВОЕ
 
@@ -417,6 +418,98 @@ class Game:
         draw_text(f"HP  {ship.hp} / {ship.max_hp}", x + 10, y + 4, 16, WHITE)
 
     # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    #  Индикаторы врагов на краях экрана
+    # ------------------------------------------------------------------
+    def _draw_enemy_indicators(self) -> None:
+        """Красные кружки на границе экрана для врагов вне поля зрения."""
+        enemies = self.enemies.enemies
+        if not enemies:
+            return
+
+        cam = self.camera
+        cam_pos = cam.position
+        tgt = cam.target
+
+        # --- forward ---
+        fx = tgt.x - cam_pos.x
+        fy = tgt.y - cam_pos.y
+        fz = tgt.z - cam_pos.z
+        flen = math.sqrt(fx * fx + fy * fy + fz * fz) or 1.0
+        fx /= flen; fy /= flen; fz /= flen
+
+        # --- right = normalize(forward × up_world) ---
+        uwx, uwy, uwz = cam.up.x, cam.up.y, cam.up.z
+        rx = fy * uwz - fz * uwy
+        ry = fz * uwx - fx * uwz
+        rz = fx * uwy - fy * uwx
+        rlen = math.sqrt(rx * rx + ry * ry + rz * rz)
+        if rlen < 1e-6:
+            # Фолбэк: up_world = (0, 1, 0)
+            rx = -fz; ry = 0.0; rz = fx
+            rlen = math.sqrt(rx * rx + rz * rz) or 1.0
+        rx /= rlen; ry /= rlen; rz /= rlen
+
+        # --- up = right × forward ---
+        ux = ry * fz - rz * fy
+        uy = rz * fx - rx * fz
+        uz = rx * fy - ry * fx
+
+        cx = SCREEN_WIDTH * 0.5
+        cy = SCREEN_HEIGHT * 0.5
+        margin = 46                                    # отступ от края экрана
+        half_w = SCREEN_WIDTH * 0.5 - margin
+        half_h = SCREEN_HEIGHT * 0.5 - margin
+        radius = 11
+
+        for e in enemies:
+            if not e.alive:
+                continue
+
+            ep = e.position
+            dx = ep.x - cam_pos.x
+            dy = ep.y - cam_pos.y
+            dz = ep.z - cam_pos.z
+
+            f = dx * fx + dy * fy + dz * fz
+
+            # Враг в поле зрения? — пропускаем индикатор
+            if f > 0.5:
+                sp = get_world_to_screen(ep, cam)
+                if (margin <= sp.x <= SCREEN_WIDTH - margin and
+                        margin <= sp.y <= SCREEN_HEIGHT - margin):
+                    continue
+                sx = sp.x - cx
+                sy = sp.y - cy
+            else:
+                # Враг позади камеры — берём направление в базисе камеры,
+                # чтобы индикатор НЕ «отражался» на противоположный край
+                r = dx * rx + dy * ry + dz * rz
+                u = dx * ux + dy * uy + dz * uz
+                sx = r
+                sy = -u        # экранный y идёт вниз
+
+            slen = math.sqrt(sx * sx + sy * sy)
+            if slen < 1e-4:
+                # Враг ровно позади по центру — ставим индикатор снизу
+                sx, sy = 0.0, 1.0
+            else:
+                sx /= slen
+                sy /= slen
+
+            # Пересечение луча из центра с прямоугольником экрана (со сжатием)
+            tx = half_w / abs(sx) if abs(sx) > 1e-6 else 1e9
+            ty = half_h / abs(sy) if abs(sy) > 1e-6 else 1e9
+            t = tx if tx < ty else ty
+
+            ix = int(cx + sx * t)
+            iy = int(cy + sy * t)
+
+            # Красный кружок с белой обводкой и точкой-«прицелом» внутри
+            draw_circle(ix, iy, radius, Color(200, 30, 30, 220))
+            draw_circle_lines(ix, iy, radius, WHITE)
+            draw_circle(ix, iy, 3, WHITE)
     def _resolve_bullet_hits(self) -> None:
         """Пули игрока: враги (приоритет) → астероиды."""
         ast = self.asteroids
