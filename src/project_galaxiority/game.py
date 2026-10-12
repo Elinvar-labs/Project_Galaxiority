@@ -2,7 +2,7 @@
 import math
 import os
 
-from raylibpy import (BLACK, WHITE, DARKGRAY, RED, ORANGE, GREEN,
+from raylibpy import (BLACK, WHITE, DARKGRAY, RED, ORANGE, GREEN, YELLOW,
                       Vector2, Vector3,
                       begin_drawing, begin_mode3d, clear_background,
                       close_window, draw_model, end_drawing, end_mode3d,
@@ -41,11 +41,9 @@ BULLET_HIT_SURF = 1.05
 SMALL_HIT_SCALE = 0.35
 
 # --- Баланс врагов ---
-ENEMY_COUNT          = 4
-ENEMY_SPAWN_DISTANCE = 200.0
-ENEMY_RESPAWN_DELAY  = 7.0
-PLAYER_HIT_RADIUS    = 1.4
-ENEMY_HIT_RADIUS     = 1.4
+ENEMY_SPAWN_DISTANCE    = 200.0
+ENEMY_INTER_WAVE_DELAY  = 3.0
+PLAYER_HIT_RADIUS       = 1.4
 
 # --- Геометрия полосок HP ---
 ENEMY_BAR_W          = 70
@@ -77,7 +75,7 @@ class Game:
                  "state", "_ui_font", "_ui_font_cyrillic")
 
     def __init__(self) -> None:
-        init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Project Galaxority")
+        init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Project Galaxiority")
         set_target_fps(60)
 
         self.assets = SceneAssets()
@@ -90,8 +88,9 @@ class Game:
                                STAR_COUNT, self.ship.position)
         self.asteroids = AsteroidField(make_asteroid, random_asteroid_position,
                                        ASTEROID_COUNT, self.ship.position)
-        self.enemies = EnemyField(ENEMY_COUNT, self.ship.position,
-                                  ENEMY_SPAWN_DISTANCE, ENEMY_RESPAWN_DELAY)
+        self.enemies = EnemyField(self.ship.position,
+                                  ENEMY_SPAWN_DISTANCE,
+                                  ENEMY_INTER_WAVE_DELAY)
 
         self.particles = ParticleSystem(self.assets.sphere_model)
         self.hud = HUD(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -108,7 +107,7 @@ class Game:
 
         self.state = STATE_PLAYING
 
-        # UI-шрифт (для экрана Game Over)                         # <-- НОВОЕ
+        # UI-шрифт (для экрана Game Over и надписей волн)
         self._ui_font = None
         self._ui_font_cyrillic = False
         self._init_ui_font()
@@ -153,8 +152,9 @@ class Game:
                                STAR_COUNT, p)
         self.asteroids = AsteroidField(make_asteroid, random_asteroid_position,
                                        ASTEROID_COUNT, p)
-        self.enemies = EnemyField(ENEMY_COUNT, p,
-                                  ENEMY_SPAWN_DISTANCE, ENEMY_RESPAWN_DELAY)
+        self.enemies = EnemyField(p,
+                                  ENEMY_SPAWN_DISTANCE,
+                                  ENEMY_INTER_WAVE_DELAY)
         self.particles = ParticleSystem(self.assets.sphere_model)
 
         self.explosion_count = 0
@@ -267,7 +267,7 @@ class Game:
             ship.draw(assets.ship_model, sphere, sphere)
 
         # Enemies (корабли + их пули)
-        self.enemies.draw(assets.ship_model, sphere, sphere)
+        self.enemies.draw(assets.enemy_models, sphere, sphere)
 
         # Explosion particles
         self.particles.draw()
@@ -279,9 +279,10 @@ class Game:
         self._draw_enemy_hp_bars()
         self._draw_player_hp_bar()
         self._draw_enemy_indicators()
+        self._draw_wave_info()
+        self._draw_boss_hp_bar()
         if self.state == STATE_GAME_OVER:
-            self._draw_game_over_screen()       # <-- НОВОЕ
-
+            self._draw_game_over_screen()
         end_drawing()
 
     # ------------------------------------------------------------------
@@ -329,7 +330,62 @@ class Game:
         draw_text_ex(self._ui_font, text, v, float(size), spacing, color)
 
     # ------------------------------------------------------------------
-    #  Полоски HP
+    #  Индикатор волны
+    # ------------------------------------------------------------------
+    def _draw_wave_info(self) -> None:
+        ef = self.enemies
+        if ef.wave_state == ef.STATE_FIGHTING:
+            text = f"ВОЛНА {ef.wave_index}"
+        else:
+            secs = max(0.0, ef.wave_delay)
+            text = f"ВОЛНА {ef.wave_index + 1}  —  {secs:0.1f}"
+
+        if not self._ui_font_cyrillic:
+            text = text.replace("ВОЛНА", "WAVE").replace("—", "-")
+
+        cx = SCREEN_WIDTH * 0.5
+        self._draw_centered(text, cx, 14, 26, WHITE, spacing=2.0)
+
+    # ------------------------------------------------------------------
+    #  Полоса HP босса (вверху экрана)
+    # ------------------------------------------------------------------
+    def _draw_boss_hp_bar(self) -> None:
+        boss = None
+        for e in self.enemies.enemies:
+            if e.alive and e.etype.is_boss:
+                boss = e
+                break
+        if boss is None:
+            return
+
+        margin = 80
+        w = SCREEN_WIDTH - margin * 2
+        h = 18
+        x = margin
+        y = 54
+
+        draw_rectangle(x - 2, y - 2, w + 4, h + 4, BLACK)
+        draw_rectangle(x, y, w, h, DARKGRAY)
+
+        frac = boss.hp / boss.max_hp if boss.max_hp > 0 else 0.0
+        if frac < 0.0:
+            frac = 0.0
+        fill = int(w * frac)
+        if fill > 0:
+            c = RED if frac < 0.35 else (ORANGE if frac < 0.7 else YELLOW)
+            draw_rectangle(x, y, fill, h, c)
+
+        draw_rectangle_lines(x - 2, y - 2, w + 4, h + 4, WHITE)
+
+        label = f"{boss.etype.name}   {boss.hp} / {boss.max_hp}"
+        if not self._ui_font_cyrillic:
+            label = f"BOSS   {boss.hp} / {boss.max_hp}"
+
+        cx = SCREEN_WIDTH * 0.5
+        self._draw_centered(label, cx, y + h + 4, 18, WHITE, spacing=1.0)
+
+    # ------------------------------------------------------------------
+    #  Полоски HP врагов (над моделью)
     # ------------------------------------------------------------------
     def _draw_enemy_hp_bars(self) -> None:
         cam = self.camera
@@ -342,12 +398,13 @@ class Game:
         flen = math.sqrt(fx * fx + fy * fy + fz * fz) or 1.0
         fx /= flen; fy /= flen; fz /= flen
 
-        w = ENEMY_BAR_W
-        h = ENEMY_BAR_H
-
         for e in self.enemies.enemies:
             if not e.alive:
                 continue
+            # Боссу полоску над головой не рисуем — для него есть большая сверху
+            if e.etype.is_boss:
+                continue
+
             ep = e.position
 
             dx = ep.x - cam_pos.x
@@ -356,7 +413,11 @@ class Game:
             if dx * fx + dy * fy + dz * fz <= 0.5:
                 continue
 
-            wp = Vector3(ep.x, ep.y + 2.6, ep.z)
+            scale = e.etype.model_scale
+            w = int(ENEMY_BAR_W * scale)
+            h = ENEMY_BAR_H
+
+            wp = Vector3(ep.x, ep.y + 2.6 * scale, ep.z)
             sp = get_world_to_screen(wp, cam)
 
             if sp.x < -100 or sp.x > SCREEN_WIDTH + 100:
@@ -368,7 +429,8 @@ class Game:
             y = int(sp.y)
 
             frac = e.hp / e.max_hp if e.max_hp > 0 else 0.0
-            if frac < 0.0: frac = 0.0
+            if frac < 0.0:
+                frac = 0.0
 
             draw_rectangle(x - 1, y - 1, w + 2, h + 2, BLACK)
             draw_rectangle(x, y, w, h, DARKGRAY)
@@ -385,6 +447,9 @@ class Game:
 
             draw_rectangle_lines(x - 1, y - 1, w + 2, h + 2, WHITE)
 
+    # ------------------------------------------------------------------
+    #  Полоса HP игрока
+    # ------------------------------------------------------------------
     def _draw_player_hp_bar(self) -> None:
         ship = self.ship
         w = PLAYER_BAR_W
@@ -395,7 +460,8 @@ class Game:
         draw_rectangle(x - 2, y - 2, w + 4, h + 4, BLACK)
 
         frac = ship.hp / ship.max_hp if ship.max_hp > 0 else 0.0
-        if frac < 0.0: frac = 0.0
+        if frac < 0.0:
+            frac = 0.0
 
         draw_rectangle(x, y, w, h, DARKGRAY)
 
@@ -416,8 +482,6 @@ class Game:
         draw_rectangle_lines(x - 2, y - 2, w + 4, h + 4, frame)
 
         draw_text(f"HP  {ship.hp} / {ship.max_hp}", x + 10, y + 4, 16, WHITE)
-
-    # ------------------------------------------------------------------
 
     # ------------------------------------------------------------------
     #  Индикаторы врагов на краях экрана
@@ -458,10 +522,9 @@ class Game:
 
         cx = SCREEN_WIDTH * 0.5
         cy = SCREEN_HEIGHT * 0.5
-        margin = 46                                    # отступ от края экрана
+        margin = 46
         half_w = SCREEN_WIDTH * 0.5 - margin
         half_h = SCREEN_HEIGHT * 0.5 - margin
-        radius = 11
 
         for e in enemies:
             if not e.alive:
@@ -492,13 +555,11 @@ class Game:
 
             slen = math.sqrt(sx * sx + sy * sy)
             if slen < 1e-4:
-                # Враг ровно позади по центру — ставим индикатор снизу
                 sx, sy = 0.0, 1.0
             else:
                 sx /= slen
                 sy /= slen
 
-            # Пересечение луча из центра с прямоугольником экрана (со сжатием)
             tx = half_w / abs(sx) if abs(sx) > 1e-6 else 1e9
             ty = half_h / abs(sy) if abs(sy) > 1e-6 else 1e9
             t = tx if tx < ty else ty
@@ -506,10 +567,27 @@ class Game:
             ix = int(cx + sx * t)
             iy = int(cy + sy * t)
 
-            # Красный кружок с белой обводкой и точкой-«прицелом» внутри
-            draw_circle(ix, iy, radius, Color(200, 30, 30, 220))
-            draw_circle_lines(ix, iy, radius, WHITE)
+            # Радиус и цвет зависят от типа врага
+            if e.etype.is_boss:
+                radius = 20
+                fill_col = Color(255, 60, 60, 235)
+                ring_col = YELLOW
+            elif e.etype.name in ("Тяжёлый", "HEAVY"):
+                radius = 15
+                fill_col = Color(220, 40, 40, 220)
+                ring_col = ORANGE
+            else:
+                radius = 11
+                fill_col = Color(200, 30, 30, 220)
+                ring_col = WHITE
+
+            draw_circle(ix, iy, radius, fill_col)
+            draw_circle_lines(ix, iy, radius, ring_col)
             draw_circle(ix, iy, 3, WHITE)
+
+    # ------------------------------------------------------------------
+    #  Столкновения
+    # ------------------------------------------------------------------
     def _resolve_bullet_hits(self) -> None:
         """Пули игрока: враги (приоритет) → астероиды."""
         ast = self.asteroids
@@ -537,13 +615,14 @@ class Game:
                 dx = bx - e.position.x
                 dy = by - e.position.y
                 dz = bz - e.position.z
-                r = ENEMY_HIT_RADIUS + br
+                r = e.etype.hit_radius + br
                 if dx * dx + dy * dy + dz * dz <= r * r:
                     killed = e.take_damage(b.damage)
                     if killed:
+                        boom = 5.0 if e.etype.is_boss else 2.0
                         self.particles.spawn_explosion(
-                            e.position.x, e.position.y, e.position.z, 2.0)
-                        self.audio.play_explosion(2.0)
+                            e.position.x, e.position.y, e.position.z, boom)
+                        self.audio.play_explosion(boom)
                         self.explosion_count += 1
                     else:
                         self.particles.spawn_explosion(bx, by, bz, 0.4)
@@ -607,7 +686,7 @@ class Game:
                     self.particles.spawn_explosion(bx, by, bz, 0.6)
                     died = ship.take_damage(b.damage)
                     if died:
-                        self._trigger_game_over()   # <-- НОВОЕ
+                        self._trigger_game_over()
                     hit = True
 
                 # 2) Случайное попадание в астероид
@@ -634,4 +713,3 @@ class Game:
                     survivors.append(b)
 
             e.bullets = survivors
-
