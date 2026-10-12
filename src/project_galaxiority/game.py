@@ -17,7 +17,7 @@ from raylibpy import (BLACK, WHITE, DARKGRAY, RED, ORANGE, GREEN, YELLOW,
                       load_font, get_font_default,
                       is_key_pressed,
                       KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_Y,
-                      get_time, draw_circle, draw_circle_lines, Color)
+                      get_time, draw_circle, draw_circle_lines, Color, toggle_fullscreen)
 
 from .camera import ChaseCamera, follow_ship
 from .enemy_field import EnemyField
@@ -180,6 +180,7 @@ class Game:
 
     # ------------------------------------------------------------------
     def run(self) -> None:
+        toggle_fullscreen()
         while not window_should_close():
             dt = get_frame_time()
             if dt > 0.05:

@@ -25,7 +25,7 @@
 
 ---
 
-![In game Screenshot](doc/indev_screenshot_0.png)
+![In game Screenshot](doc/gameplay.gif)
 
 ## ✨ Особенности
 
